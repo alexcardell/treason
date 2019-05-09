@@ -1,0 +1,4 @@
+(library
+  (name lib)
+  (public_name treason.lib)
+  (libraries console.lib pastel.lib))

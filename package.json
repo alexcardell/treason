@@ -1,0 +1,28 @@
+{
+  "name": "treason",
+  "version": "0.1.0",
+  "description": "ReasonML tmux library",
+  "keywords": [ "reason", "esy"],
+  "esy": {
+    "build": "refmterr dune build -p #{self.name}",
+    "release": { "bin": [ "Index.exe" ] }
+  },
+  "scripts": {
+    "test": "esy x RunTests.exe"
+  },
+  "dependencies": {
+    "@esy-ocaml/reason": ">= 3.4.0 < 3.5.0",
+    "@opam/dune": "*",
+    "@reason-native/console": "*",
+    "@reason-native/pastel": "*",
+    "@reason-native/rely": "*",
+    "belt": "^0.0.1",
+    "ocaml": "~4.6.0",
+    "refmterr": "*"
+  },
+  "devDependencies": { "@opam/merlin": "*" },
+  "repository": "git@github.com:baubler/treason.git",
+  "author": "baubler <29524087+baubler@users.noreply.github.com>",
+  "license": "MIT",
+  "private": true
+}
