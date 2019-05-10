@@ -1,8 +1,9 @@
 open TestFramework;
-/* open Lib; */
+open Treason;
 
-describe("suite", ({test}) => {
-  test("test", ({expect}) => {
-    expect.int(1 + 1).toBe(2)
+describe("Treason", ({test}) => {
+  test("tests work", ({expect}) => {
+    let actual = Server.exec();
+    expect.bool(actual).toBe(true);
   });
 });
