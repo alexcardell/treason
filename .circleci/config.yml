@@ -1,0 +1,42 @@
+version: 2.1
+
+# cache_key: &cache_key
+#   dependencies-{{ arch }}-{{ checksum "package.json" }}-{{ checksum "esy.lock" }}
+
+aliases:
+  - &defaults
+    working_directory: ~/repo
+    docker:
+      - image: circleci/node:11
+
+
+jobs:
+  build:
+    <<: *defaults
+    steps:
+      - checkout
+      - run:
+          name: Setup environment variables
+          command: |
+            echo 'export NPM_CONFIG_PREFIX="$HOME/.npm-global"' >> $BASH_ENV
+            echo 'export PATH="$NPM_CONFIG_PREFIX/bin:$PATH"' >> $BASH_ENV
+      - run:
+          name: Generate cache key
+          command: |
+            shasum -a 512 esy.lock >> /tmp/key.txt
+            cat /tmp/key.txt
+      - restore_cache:
+          keys:
+            - dependencies-{{ arch }}-{{ checksum "package.json" }}-{{ checksum "/tmp/key.txt" }}
+            - dependencies-{{ arch }}-{{ checksum "package.json" }}-
+            - dependencies-{{ arch }}-
+            - dependencies-
+      - run: npm install -g esy@0.5.6
+      - run: esy install
+      - run: esy build
+      - save_cache:
+          paths:
+            - '_esy'
+            - 'node_modules'
+          key: dependencies-{{ arch }}-{{ checksum "package.json" }}-{{ checksum "/tmp/key.txt" }}
+      - run: esy test
