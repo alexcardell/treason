@@ -3,9 +3,7 @@
   "version": "0.1.0",
   "description": "ReasonML tmux library",
   "keywords": [ "reason", "esy" ],
-  "esy": {
-    "build": "refmterr dune build -p #{self.name}"
-  },
+  "esy": { "build": "refmterr dune build -p #{self.name}" },
   "buildDirs": {
     "test": {
       "require": [ "treason.lib", "rely.lib" ],
@@ -31,7 +29,8 @@
   "devDependencies": {
     "@opam/merlin": "*",
     "pesy": "^0.4.1",
-    "refmterr": "*"
+    "refmterr": "*",
+    "reason-cli": "^0.0.0"
   },
   "repository": "git@github.com:baubler/treason.git",
   "author": "baubler <29524087+baubler@users.noreply.github.com>",

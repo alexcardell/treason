@@ -1,5 +1,5 @@
 {
-  "checksum": "b935461eb4b9b821a24552832977131c",
+  "checksum": "d6432dc2ccf74c2fd40b640a5f572119",
   "root": "treason@link-dev:./package.json",
   "node": {
     "treason@link-dev:./package.json": {
@@ -13,7 +13,8 @@
       },
       "overrides": [],
       "dependencies": [
-        "ocaml@4.6.10@d41d8cd9", "@reason-native/rely@2.1.0@d41d8cd9",
+        "reason-cli@0.0.0@d41d8cd9", "ocaml@4.6.10@d41d8cd9",
+        "@reason-native/rely@2.1.0@d41d8cd9",
         "@reason-native/pastel@0.2.1@d41d8cd9",
         "@reason-native/console@0.1.0@d41d8cd9",
         "@opam/dune@opam:1.9.3@cccbbfe7", "@esy-ocaml/reason@3.4.0@d41d8cd9"
@@ -38,6 +39,20 @@
         "ocaml@4.6.10@d41d8cd9", "@opam/re@opam:1.9.0@7f4a36a5",
         "@opam/dune@opam:1.9.3@cccbbfe7", "@esy-ocaml/reason@3.4.0@d41d8cd9"
       ],
+      "devDependencies": []
+    },
+    "reason-cli@0.0.0@d41d8cd9": {
+      "id": "reason-cli@0.0.0@d41d8cd9",
+      "name": "reason-cli",
+      "version": "0.0.0",
+      "source": {
+        "type": "install",
+        "source": [
+          "archive:https://registry.npmjs.org/reason-cli/-/reason-cli-0.0.0.tgz#sha1:d8fef7cc4b3258ae1d486bbb612f708c8f2176fc"
+        ]
+      },
+      "overrides": [],
+      "dependencies": [],
       "devDependencies": []
     },
     "pesy@0.4.1@d41d8cd9": {
