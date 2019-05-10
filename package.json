@@ -2,25 +2,37 @@
   "name": "treason",
   "version": "0.1.0",
   "description": "ReasonML tmux library",
-  "keywords": [ "reason", "esy"],
+  "keywords": [ "reason", "esy" ],
   "esy": {
-    "build": "refmterr dune build -p #{self.name}",
-    "release": { "bin": [ "Index.exe" ] }
+    "build": "refmterr dune build -p #{self.name}"
   },
-  "scripts": {
-    "test": "esy x RunTests.exe"
+  "buildDirs": {
+    "test": {
+      "require": [ "treason.lib", "rely.lib" ],
+      "main": "TestTreason",
+      "name": "TestTreason.exe",
+      "ocamloptFlags": [ "-linkall", "-g" ]
+    },
+    "lib": {
+      "require": [ "pastel.lib", "console.lib" ],
+      "name": "treason.lib",
+      "namespace": "Treason"
+    }
   },
+  "scripts": { "test": "esy x TestTreason.exe" },
   "dependencies": {
     "@esy-ocaml/reason": ">= 3.4.0 < 3.5.0",
     "@opam/dune": "*",
     "@reason-native/console": "*",
     "@reason-native/pastel": "*",
     "@reason-native/rely": "*",
-    "belt": "^0.0.1",
-    "ocaml": "~4.6.0",
+    "ocaml": "~4.6.0"
+  },
+  "devDependencies": {
+    "@opam/merlin": "*",
+    "pesy": "^0.4.1",
     "refmterr": "*"
   },
-  "devDependencies": { "@opam/merlin": "*" },
   "repository": "git@github.com:baubler/treason.git",
   "author": "baubler <29524087+baubler@users.noreply.github.com>",
   "license": "MIT",
