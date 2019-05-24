@@ -7,28 +7,27 @@
   "buildDirs": {
     "test": {
       "require": [ "treason.lib", "rely.lib" ],
-      "preprocess": ["pps", "lwt_ppx"],
+      "preprocess": [ "pps", "lwt_ppx" ],
       "main": "TestTreason",
       "name": "TestTreason.exe",
       "ocamloptFlags": [ "-linkall", "-g" ]
     },
     "lib": {
       "require": [ "pastel.lib", "console.lib", "lwt", "lwt.unix" ],
-      "preprocess": ["pps", "lwt_ppx"],
+      "preprocess": [ "pps", "lwt_ppx" ],
       "name": "treason.lib",
       "namespace": "Treason"
     },
     "exe": {
-      "require": [ "pastel.lib", "console.lib", "treason.lib", "lwt", "lwt.unix" ],
-      "preprocess": ["pps", "lwt_ppx"],
+      "require": [
+        "pastel.lib", "console.lib", "treason.lib", "lwt", "lwt.unix"
+      ],
+      "preprocess": [ "pps", "lwt_ppx" ],
       "name": "treason.exe",
       "main": "TreasonApp"
     }
   },
-  "scripts": {
-    "test": "esy x TestTreason.exe",
-    "run": "esy x Treason.exe"
-  },
+  "scripts": { "test": "esy x TestTreason.exe", "run": "esy x Treason.exe" },
   "dependencies": {
     "@esy-ocaml/reason": ">= 3.4.0 < 3.5.0",
     "@opam/dune": "*",
@@ -41,12 +40,14 @@
   },
   "devDependencies": {
     "@opam/merlin": "*",
+    "lint-staged": "^8.1.7",
     "pesy": "^0.4.1",
-    "refmterr": "*",
-    "reason-cli": "^0.0.0"
+    "reason-cli": "^0.0.0",
+    "refmterr": "*"
   },
   "repository": "git@github.com:baubler/treason.git",
   "author": "baubler <29524087+baubler@users.noreply.github.com>",
   "license": "MIT",
-  "private": true
+  "private": true,
+  "lint-staged": { "*.re": [ "refmt --in-place", "git add" ] }
 }
