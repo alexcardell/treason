@@ -8,7 +8,7 @@ let run = (parser, input) => {
   fn(input);
 };
 
-module Parsers {
+module Parsers = {
   let pchar = char => {
     let fn = str =>
       if (str == "") {
@@ -25,7 +25,7 @@ module Parsers {
       };
     Parser(fn);
   };
-}
+};
 
 module Combinators = {
   let andThen = (p1, p2) => {
@@ -63,8 +63,4 @@ let (@>>@) = (a, b) => andThen(a, b);
 
 let (<|>) = (a, b) => orElse(a, b);
 
-let anyOf = chars =>
-  chars
-    |> List.map(pchar)
-    |> choice
-
+let anyOf = chars => chars |> List.map(pchar) |> choice;
