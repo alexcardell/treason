@@ -1,3 +1,4 @@
-include Tests;
+include ServerTest;
+include ParserTest;
 
 TestFramework.cli();
