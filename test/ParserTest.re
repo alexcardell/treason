@@ -2,6 +2,9 @@ open TestFramework;
 open Treason.Parser;
 
 describe("Parser", ({test}) => {
+
+  open Parsers;
+
   let pA = pchar('A');
   let pB = pchar('B');
 
@@ -9,18 +12,16 @@ describe("Parser", ({test}) => {
     let input = "ABC";
 
     let received = run(pA, input);
-    let expected = Success('A', "BC");
 
-    expect.equal(received, expected);
+    expect.result(received).toBeOk();
   });
 
   test("pchar failure", ({expect}) => {
     let input = "BC";
 
     let received = run(pA, input);
-    let expected = Failure("Expecting 'A'. Got 'B'");
 
-    expect.equal(received, expected);
+    expect.result(received).toBeError();
   });
 
   describe("Parser -> Combinators -> andThen", ({test}) => {
@@ -28,27 +29,19 @@ describe("Parser", ({test}) => {
 
     test("andThen success", ({expect}) => {
       let received = run(p, "AB");
-      let expected = Success(('A', 'B'), "");
 
-      expect.equal(received, expected);
+      expect.result(received).toBeOk();
     });
 
     test("andThen failure 1", ({expect}) => {
-      let x =
-        switch (run(p, "BB")) {
-        | Success(_) => false
-        | Failure(_) => true
-        };
-      expect.bool(x).toBe(true);
+      let x = run(p, "BB");
+      expect.result(x).toBeError();
     });
 
     test("andThen failure 2", ({expect}) => {
-      let x =
-        switch (run(p, "AC")) {
-        | Success(_) => false
-        | Failure(_) => true
-        };
-      expect.bool(x).toBe(true);
+      let x = run(p, "AC");
+
+      expect.result(x).toBeError();
     });
   });
 
@@ -57,25 +50,20 @@ describe("Parser", ({test}) => {
 
     test("orElse success 1", ({expect}) => {
       let received = run(p, "AC");
-      let expected = Success('A', "C");
 
-      expect.equal(received, expected);
+      expect.result(received).toBeOk();
     });
 
-    test("orElse succes 2", ({expect}) => {
+    test("orElse success 2", ({expect}) => {
       let received = run(p, "BC");
-      let expected = Success('B', "C");
 
-      expect.equal(received, expected);
+      expect.result(received).toBeOk();
     });
 
     test("orElse failure", ({expect}) => {
-      let x =
-        switch (run(p, "DC")) {
-        | Success(_) => false
-        | Failure(_) => true
-        };
-      expect.bool(x).toBe(true);
+      let x = run(p, "DC") ;
+
+      expect.result(x).toBeError();
     });
   });
 
@@ -85,32 +73,26 @@ describe("Parser", ({test}) => {
 
     test("anyOf success 1", ({expect}) => {
       let received = run(p, "AD");
-      let expected = Success('A', "D");
 
-      expect.equal(received, expected);
+      expect.result(received).toBeOk();
     });
 
     test("anyOf success 2", ({expect}) => {
       let received = run(p, "BD");
-      let expected = Success('B', "D");
 
-      expect.equal(received, expected);
+      expect.result(received).toBeOk();
     });
 
     test("anyOf success 3", ({expect}) => {
       let received = run(p, "CD");
-      let expected = Success('C', "D");
 
-      expect.equal(received, expected);
+      expect.result(received).toBeOk();
     });
 
     test("anyOf failure 1", ({expect}) => {
-      let x =
-        switch (run(p, "DC")) {
-        | Success(_) => false
-        | Failure(_) => true
-        };
-      expect.bool(x).toBe(true);
+      let x = run(p, "DC");
+
+      expect.result(x).toBeError();
     });
   });
 });
