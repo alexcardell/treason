@@ -1,19 +1,15 @@
 open TestFramework;
 open Treason.Parser;
 
-describe("Parser", ({test}) => {
-
-  open Parsers;
-
+describe("Parser -> Parsers -> pchar", ({test}) => {
   let pA = pchar('A');
-  let pB = pchar('B');
 
   test("pchar sucess", ({expect}) => {
     let input = "ABC";
 
     let received = run(pA, input);
 
-    expect.result(received).toBeOk();
+    expect.result(received).toBe(Ok(('A', "BC")));
   });
 
   test("pchar failure", ({expect}) => {
@@ -23,76 +19,105 @@ describe("Parser", ({test}) => {
 
     expect.result(received).toBeError();
   });
+});
 
-  describe("Parser -> Combinators -> andThen", ({test}) => {
-    let p = pA @>>@ pB;
+describe("Parser -> Parsers -> pdigit", ({test}) => {
+  test("pchar sucess", ({expect}) => {
+    let input = "0123";
 
-    test("andThen success", ({expect}) => {
-      let received = run(p, "AB");
+    let received = run(pdigit, input);
+    let expected = Ok(('0', "123"));
 
-      expect.result(received).toBeOk();
-    });
-
-    test("andThen failure 1", ({expect}) => {
-      let x = run(p, "BB");
-      expect.result(x).toBeError();
-    });
-
-    test("andThen failure 2", ({expect}) => {
-      let x = run(p, "AC");
-
-      expect.result(x).toBeError();
-    });
+    expect.result(received).toBe(expected);
   });
 
-  describe("Parser -> Combinators -> orElse", ({test}) => {
-    let p = pA <|> pB;
+  test("pchar failure", ({expect}) => {
+    let input = "BC";
 
-    test("orElse success 1", ({expect}) => {
-      let received = run(p, "AC");
+    let received = run(pdigit, input);
 
-      expect.result(received).toBeOk();
-    });
+    expect.result(received).toBeError();
+  });
+});
 
-    test("orElse success 2", ({expect}) => {
-      let received = run(p, "BC");
+describe("Parser -> Combinators -> andThen", ({test}) => {
+  let pA = pchar('A');
+  let pB = pchar('B');
+  let p = pA @>>@ pB;
 
-      expect.result(received).toBeOk();
-    });
+  test("andThen success", ({expect}) => {
+    let received = run(p, "AB");
+    let expected = Ok((('A', 'B'), ""));
 
-    test("orElse failure", ({expect}) => {
-      let x = run(p, "DC") ;
-
-      expect.result(x).toBeError();
-    });
+    expect.result(received).toBe(expected);
   });
 
-  describe("Parser -> Combinators -> anyOf", ({test}) => {
-    let chars = ['A', 'B', 'C'];
-    let p = anyOf(chars);
+  test("andThen failure 1", ({expect}) => {
+    let received = run(p, "BB");
+    expect.result(received).toBeError();
+  });
 
-    test("anyOf success 1", ({expect}) => {
-      let received = run(p, "AD");
+  test("andThen failure 2", ({expect}) => {
+    let received = run(p, "AC");
 
-      expect.result(received).toBeOk();
-    });
+    expect.result(received).toBeError();
+  });
+});
 
-    test("anyOf success 2", ({expect}) => {
-      let received = run(p, "BD");
+describe("Parser -> Combinators -> orElse", ({test}) => {
+  let pA = pchar('A');
+  let pB = pchar('B');
+  let p = pA <|> pB;
 
-      expect.result(received).toBeOk();
-    });
+  test("orElse success 1", ({expect}) => {
+    let received = run(p, "AC");
+    let expected = Ok(('A', "C"));
 
-    test("anyOf success 3", ({expect}) => {
-      let received = run(p, "CD");
+    expect.result(received).toBe(expected);
+  });
 
-      expect.result(received).toBeOk();
-    });
+  test("orElse success 2", ({expect}) => {
+    let received = run(p, "BC");
+    let expected = Ok(('B', "C"));
 
-    test("anyOf failure 1", ({expect}) => {
-      let x = run(p, "DC");
+    expect.result(received).toBe(expected);
+  });
 
-      expect.result(x).toBeError();
-    });
+  test("orElse failure", ({expect}) => {
+    let x = run(p, "DC");
+
+    expect.result(x).toBeError();
+  });
+});
+
+describe("Parser -> Combinators -> anyOf", ({test}) => {
+  let chars = ['A', 'B', 'C'];
+  let p = anyOf(chars);
+
+  test("anyOf success 1", ({expect}) => {
+    let received = run(p, "AD");
+    let expected = Ok(('A', "D"));
+
+    expect.result(received).toBe(expected);
+  });
+
+  test("anyOf success 2", ({expect}) => {
+    let received = run(p, "BD");
+    let expected = Ok(('B', "D"));
+
+    expect.result(received).toBe(expected);
+  });
+
+  test("anyOf success 3", ({expect}) => {
+    let received = run(p, "CD");
+    let expected = Ok(('C', "D"));
+
+    expect.result(received).toBe(expected);
+  });
+
+  test("anyOf failure 1", ({expect}) => {
+    let received = run(p, "DC");
+
+    expect.result(received).toBeError();
   });
 });
