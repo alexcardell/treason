@@ -1,23 +1,25 @@
 open Treason__Parser;
 open RelyInternal__RelyAPI.MatcherTypes;
 
-type successExtensionsWithoutNot('a) = {
-  toFail: unit => unit,
-  /* toSucceed: unit => unit, */
-  /* toBe: (result('a)) => unit, */
-};
+type toBe('a) = result('a) => unit;
+
+type not('a) = {toBe: toBe('a)};
 
 type successExtensions('a) = {
-  not: successExtensionsWithoutNot('a),
   toFail: unit => unit,
-  /* toSucceed: unit => unit, */
-  /* toBe: (result('a)) => unit, */
+  toSucceed: unit => unit,
+  toBe: result('a) => unit,
+  not: not('a),
 };
 
 let printResult = res =>
   switch (res) {
   | Success(parsed, remaining) =>
-    Printf.sprintf("Success(%c, %s)", parsed, remaining)
+    Printf.sprintf(
+      "Success(%s, %s)",
+      RelyInternal__PolymorphicPrint.print(parsed),
+      remaining,
+    )
   | Failure(msg) => Printf.sprintf("Failure(%s)", msg)
   };
 
@@ -30,48 +32,90 @@ let isSuccess = res =>
 let isFailure = res => !isSuccess(res);
 
 let successExtensions = (actual, {createMatcher}) => {
-
-  let toFail = isNot =>
+  let toSucceed =
     createMatcher(({formatReceived}, actualThunk, expectedThunk) => {
       let actual = actualThunk();
-      let actualIsFailure = isFailure(actual);
+      isSuccess(actual) ?
+        (() => "", true) :
+        {
+          let message =
+            String.concat(
+              "",
+              [
+                "\n\n",
+                "Expected value to be Success, but received: ",
+                formatReceived(printResult(actual)),
+              ],
+            );
+          (() => message, false);
+        };
+    });
 
-      switch (actualIsFailure, isNot) {
-      | (true, false)
-      | (false, true) => ((() => ""), true)
-      | (false, false) =>
+  let toFail =
+    createMatcher(({formatReceived}, actualThunk, expectedThunk) => {
+      let actual = actualThunk();
+      isFailure(actual) ?
+        (() => "", true) :
+        {
+          let message =
+            String.concat(
+              "",
+              [
+                "\n\n",
+                "Expected value to be Failure, but received: ",
+                formatReceived(printResult(actual)),
+              ],
+            );
+          (() => message, false);
+        };
+    });
+
+  let toBe = isNot =>
+    createMatcher(
+      ({formatExpected, formatReceived}, actualThunk, expectedThunk) => {
+      let actual = actualThunk();
+      let expected = expectedThunk();
+
+      let actualEqualsExpected =
+        switch (actual, expected) {
+        | (Failure(actual), Failure(expected)) when actual == expected =>
+          true
+        | (Success(actual, remaining), Success(expected, remaining2))
+            when actual == expected && remaining == remaining2 =>
+          true
+        | (_, _) => false
+        };
+
+      let pass =
+        actualEqualsExpected && !isNot || !actualEqualsExpected && isNot;
+
+      if (!pass) {
         let message =
           String.concat(
             "",
             [
               "\n\n",
-              "Expected value to be Failure, but received: ",
+              "Expected: ",
+              formatExpected(printResult(expected)),
+              "\n",
+              "Received: ",
               formatReceived(printResult(actual)),
             ],
           );
-        ((() => message), false);
-      | (true, true) =>
-        let message =
-          String.concat(
-            "",
-            [
-              "\n\n",
-              "Expected value to not be Failure, but received: ",
-              formatReceived(printResult(actual)),
-            ],
-          );
-        ((() => message), false);
+        (() => message, pass);
+      } else {
+        (() => "", pass);
       };
     });
 
-  let makeSuccessMatchers = isNot => {
-    toFail: () => toFail(isNot, () => actual, () => ()),
+  let successMatchers = {
+    toFail: () => toFail(() => actual, () => ()),
+    toSucceed: () => toSucceed(() => actual, () => ()),
+    toBe: expected => toBe(false, () => actual, () => expected),
+    not: {
+      toBe: expected => toBe(true, () => actual, () => expected),
+    },
   };
 
-  let successMatchers = makeSuccessMatchers(false);
-
-  {
-    toFail: successMatchers.toFail,
-    not: makeSuccessMatchers(true),
-  };
+  successMatchers;
 };

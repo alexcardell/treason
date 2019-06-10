@@ -1,6 +1,6 @@
 type result('a) =
   | Success('a, string)
-  | Failure(string)
+  | Failure(string);
 
 type t('a) =
   | Parser(string => result('a));
@@ -29,12 +29,12 @@ let pchar = char => {
 
 let andThen = (p1, p2) => {
   let fn = input =>
-    switch (input |> run(p1)) {
+    switch (run(p1, input)) {
     | Failure(msg) => Failure(msg)
-    | Success(v1, remaining) =>
+    | Success(val1, remaining) =>
       switch (run(p2, remaining)) {
       | Failure(msg) => Failure(msg)
-      | Success(v2, remaining2) => Success((v1, v2), remaining2)
+      | Success(val2, remaining2) => Success((val1, val2), remaining2)
       }
     };
   Parser(fn);
@@ -51,9 +51,9 @@ let orElse = (p1, p2) => {
   Parser(fn);
 };
 
-let reduce = (f, ls) => List.fold_left(f, List.hd(ls), List.tl(ls));
+let _reduce = (f, ls) => List.fold_left(f, List.hd(ls), List.tl(ls));
 
-let choice = parsers => parsers |> reduce(orElse);
+let choice = parsers => parsers |> _reduce(orElse);
 
 let mapP = (f, parser) => {
   let fn = input => {
@@ -75,13 +75,13 @@ let (|>>) = (x, f) => mapP(f, x);
 let anyOf = chars => chars |> List.map(pchar) |> choice;
 
 let pdigit = {
-  let rec range = (start, end_) =>
-    if (start >= end_) {
+  let rec _range = (start, _end) =>
+    if (start >= _end) {
       [];
     } else {
-      [start, ...range(start + 1, end_)];
+      [start, ..._range(start + 1, _end)];
     };
-  let digits = range(0, 9);
+  let digits = _range(0, 9);
   let ascii0 = 48;
   digits |> List.map(x => x + ascii0) |> List.map(char_of_int) |> anyOf;
 };
