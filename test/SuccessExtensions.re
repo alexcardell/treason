@@ -1,5 +1,5 @@
-open Treason__Parser;
-open RelyInternal__RelyAPI.MatcherTypes;
+open Treason.Parser;
+open RelyInternal.RelyAPI.MatcherTypes;
 
 type toBe('a) = result('a) => unit;
 
