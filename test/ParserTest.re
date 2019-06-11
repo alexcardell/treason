@@ -13,7 +13,7 @@ let customMatchers = createMatcher => {
 
 let {describe} = extendDescribe(customMatchers);
 
-describe("Parser -> Parsers -> pchar", ({test}) => {
+describe("Parser / Parsers / pchar", ({test}) => {
   let pA = pchar('A');
 
   test("pchar sucess", ({expect}) => {
@@ -33,7 +33,7 @@ describe("Parser -> Parsers -> pchar", ({test}) => {
   });
 });
 
-describe("Parser -> Parsers -> pdigit", ({test}) => {
+describe("Parser / Parsers / pdigit", ({test}) => {
   test("pdigit sucess", ({expect}) => {
     let input = "0123";
 
@@ -52,7 +52,7 @@ describe("Parser -> Parsers -> pdigit", ({test}) => {
   });
 });
 
-describe("Parser -> Combinators -> andThen", ({test}) => {
+describe("Parser / Combinators / andThen", ({test}) => {
   let pA = pchar('A');
   let pB = pchar('B');
   let pAB = pA @>>@ pB;
@@ -88,7 +88,7 @@ describe("Parser -> Combinators -> andThen", ({test}) => {
   });
 });
 
-describe("Parser -> Combinators -> orElse", ({test}) => {
+describe("Parser / Combinators / orElse", ({test}) => {
   let pA = pchar('A');
   let pB = pchar('B');
   let p = pA <|> pB;
@@ -114,7 +114,7 @@ describe("Parser -> Combinators -> orElse", ({test}) => {
   });
 });
 
-describe("Parser -> Combinators -> anyOf", ({test}) => {
+describe("Parser / Combinators / anyOf", ({test}) => {
   let chars = ['A', 'B', 'C'];
   let p = anyOf(chars);
 
