@@ -10,35 +10,34 @@ let run = (parser, input) => {
   fn(input);
 };
 
-let pchar = char => {
-  let fn = str =>
-    if (str == "") {
-      Failure("Empty Input");
-    } else {
-      let first = str.[0];
-      if (first == char) {
-        let remaining = String.sub(str, 1, String.length(str) - 1);
-        Success(char, remaining);
-      } else {
-        let msg = Printf.sprintf("Expecting '%c'. Got '%c'", char, first);
-        Failure(msg);
-      };
-    };
+let returnP = a => {
+  let fn = input => Success(a, input);
   Parser(fn);
 };
 
-let andThen = (p1, p2) => {
-  let fn = input =>
-    switch (run(p1, input)) {
-    | Failure(msg) => Failure(msg)
+let bindP = (f, p) => {
+  let fn = input => {
+    let res1 = run(p, input);
+    switch (res1) {
+    | Failure(err) => Failure(err)
     | Success(val1, remaining) =>
-      switch (run(p2, remaining)) {
-      | Failure(msg) => Failure(msg)
-      | Success(val2, remaining2) => Success((val1, val2), remaining2)
-      }
+      let p2 = f(val1);
+      run(p2, remaining);
     };
+  };
   Parser(fn);
 };
+
+let (>>=) = (p, f) => bindP(f, p);
+
+let andThen = (p1, p2) =>
+  p1 >>= (p1Result => p2 >>= (p2Result => returnP((p1Result, p2Result))));
+
+let (@>>@) = (a, b) => andThen(a, b);
+
+let applyP = (fP, xP) => fP >>= (f => xP >>= (x => returnP(f(x))));
+
+let (<*>) = (fP, xP) => applyP(fP, xP);
 
 let orElse = (p1, p2) => {
   let fn = input => {
@@ -48,12 +47,18 @@ let orElse = (p1, p2) => {
     | Failure(msg) => input |> run(p2)
     };
   };
+
   Parser(fn);
 };
 
-let _reduce = (f, ls) => List.fold_left(f, List.hd(ls), List.tl(ls));
+let (<|>) = (a, b) => orElse(a, b);
 
-let choice = parsers => parsers |> _reduce(orElse);
+let choice = parsers => {
+  open List;
+  let reduce = (f, ls) => fold_left(f, hd(ls), tl(ls));
+
+  parsers |> reduce(orElse);
+};
 
 let mapP = (f, parser) => {
   let fn = input => {
@@ -66,28 +71,11 @@ let mapP = (f, parser) => {
   Parser(fn);
 };
 
-let (@>>@) = (a, b) => andThen(a, b);
-
-let (<|>) = (a, b) => orElse(a, b);
-
 let (|>>) = (x, f) => mapP(f, x);
 
-let anyOf = chars => chars |> List.map(pchar) |> choice;
+let (@>>) = (p1, p2) => p1 @>>@ p2 |> mapP((a, b) => a);
 
-let pDigit = {
-  let digits = List.init(10, x => x);
-  let ascii0 = 48;
-  digits |> List.map(x => x + ascii0) |> List.map(char_of_int) |> anyOf;
-};
-
-let returnP = a => {
-  let fn = input => Success(a, input);
-  Parser(fn);
-};
-
-let applyP = (fP, xP) => fP @>>@ xP |> mapP(((f, x)) => f(x));
-
-let (<*>) = (fP, xP) => applyP(fP, xP);
+let (>>@) = (p1, p2) => p1 @>>@ p2 |> mapP((a, b) => b);
 
 let lift2 = (f, xP, yP) => returnP(f) <*> xP <*> yP;
 
@@ -101,14 +89,9 @@ let rec sequence = listP => {
   };
 };
 
-let toStr = chars => String.concat("", List.map(String.make(1), chars));
-
-let toChars = str => Core.String.to_list(str);
-
-let pStr = str => str |> toChars |> List.map(pchar) |> sequence |>> toStr;
-
 let rec parseZeroOrMore = (p, input) => {
   let res1 = run(p, input);
+
   switch (res1) {
   | Failure(msg) => ([], input)
   | Success(firstValue, inputLeft) =>
@@ -123,5 +106,49 @@ let many = p => {
     let (parsed, remaining) = parseZeroOrMore(p, input);
     Success(parsed, remaining);
   };
+
   Parser(fn);
+};
+
+let sepBy1 = (p, sep) =>
+  p @>>@ many(sep >>@ p) |>> (((p, listP)) => [p, ...listP]);
+
+let sepBy = (p, sep) => sepBy1(p, sep) <|> returnP([]);
+
+module Parsers = {
+  let pchar = char => {
+    let fn = str =>
+      if (str == "") {
+        Failure("Empty Input");
+      } else {
+        let first = str.[0];
+        if (first == char) {
+          let remaining = String.sub(str, 1, String.length(str) - 1);
+          Success(char, remaining);
+        } else {
+          let msg = Printf.sprintf("Expecting '%c'. Got '%c'", char, first);
+          Failure(msg);
+        };
+      };
+    Parser(fn);
+  };
+
+  let anyOf = (p, input) => input |> List.map(p) |> choice;
+
+  let pDigit = {
+    let digits = List.init(10, x => x);
+    let ascii0 = 48;
+
+    digits
+    |> List.map(x => x + ascii0)
+    |> List.map(char_of_int)
+    |> anyOf(pchar);
+  };
+
+  let pStr = str =>
+    str
+    |> Core.String.to_list
+    |> List.map(pchar)
+    |> sequence
+    |>> (chars => String.concat("", List.map(String.make(1), chars)));
 };

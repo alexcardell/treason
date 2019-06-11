@@ -1,5 +1,6 @@
 open TestFramework;
 open Treason.Parser;
+open Parsers;
 open SuccessExtensions;
 
 type customMatchers = {success: 'a. result('a) => successExtensions('a)};
@@ -113,7 +114,7 @@ describe("Parser / Combinators / orElse", ({test}) => {
 
 describe("Parser / Combinators / anyOf", ({test}) => {
   let chars = ['A', 'B', 'C'];
-  let p = anyOf(chars);
+  let p = anyOf(pchar, chars);
 
   test("anyOf success 1", ({expect}) => {
     let received = run(p, "AD");
