@@ -74,14 +74,54 @@ let (|>>) = (x, f) => mapP(f, x);
 
 let anyOf = chars => chars |> List.map(pchar) |> choice;
 
-let pdigit = {
-  let rec _range = (start, _end) =>
-    if (start >= _end) {
-      [];
-    } else {
-      [start, ..._range(start + 1, _end)];
-    };
-  let digits = _range(0, 9);
+let pDigit = {
+  let digits = List.init(10, x => x);
   let ascii0 = 48;
   digits |> List.map(x => x + ascii0) |> List.map(char_of_int) |> anyOf;
+};
+
+let returnP = a => {
+  let fn = input => Success(a, input);
+  Parser(fn);
+};
+
+let applyP = (fP, xP) => fP @>>@ xP |> mapP(((f, x)) => f(x));
+
+let (<*>) = (fP, xP) => applyP(fP, xP);
+
+let lift2 = (f, xP, yP) => returnP(f) <*> xP <*> yP;
+
+let rec sequence = listP => {
+  let cons = (hd, tl) => [hd, ...tl];
+  let consP = lift2(cons);
+
+  switch (listP) {
+  | [] => returnP([])
+  | [hd, ...tl] => consP(hd, sequence(tl))
+  };
+};
+
+let toStr = chars => String.concat("", List.map(String.make(1), chars));
+
+let toChars = str => Core.String.to_list(str);
+
+let pStr = str => str |> toChars |> List.map(pchar) |> sequence |>> toStr;
+
+let rec parseZeroOrMore = (p, input) => {
+  let res1 = run(p, input);
+  switch (res1) {
+  | Failure(msg) => ([], input)
+  | Success(firstValue, inputLeft) =>
+    let (subsequentValues, remainingInput) = parseZeroOrMore(p, inputLeft);
+    let values = [firstValue, ...subsequentValues];
+    (values, remainingInput);
+  };
+};
+
+let many = p => {
+  let rec fn = input => {
+    let (parsed, remaining) = parseZeroOrMore(p, input);
+    Success(parsed, remaining);
+  };
+  Parser(fn);
 };
