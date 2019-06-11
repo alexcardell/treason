@@ -57,20 +57,33 @@ describe("Parser -> Combinators -> andThen", ({test}) => {
   let pB = pchar('B');
   let pAB = pA @>>@ pB;
 
-  test("andThen success", ({expect}) => {
+  let pA0 = pA @>>@ pdigit;
+
+  test("given 'AB', 'A' andThen 'B' should succeed", ({expect}) => {
     let received = run(pAB, "AB");
     let expected = Success(('A', 'B'), "");
 
     expect.ext.success(received).toBe(expected);
   });
 
-  test("andThen failure 1", ({expect}) => {
+  test("given 'BB', 'A' andThen 'B' should fail", ({expect}) => {
     let received = run(pAB, "BB");
     expect.ext.success(received).toFail();
   });
 
-  test("andThen failure 2", ({expect}) => {
+  test("given 'AC', 'A' andThen 'B' should fail", ({expect}) => {
     let received = run(pAB, "AC");
+    expect.ext.success(received).toFail();
+  });
+
+  test("given 'A0', 'A' andThen digit should succeeed", ({expect}) => {
+    let received = run(pA0, "A0");
+    let expected = Success(('A', '0'), "")
+    expect.ext.success(received).toBe(expected);
+  });
+
+  test("given 'AA', 'A' andThen digit should succeeed", ({expect}) => {
+    let received = run(pA0, "AA");
     expect.ext.success(received).toFail();
   });
 });
