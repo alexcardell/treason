@@ -171,11 +171,43 @@ describe("Parser / Parsers / pStr ", ({test}) => {
 
 describe("Parser / Parsers / many ", ({test}) =>
   test("parser for \"ABC\" should succeed given \"ABC\"", ({expect}) => {
-    let pA = pchar('A');
-    let pManyA = many(pA);
+    let pManyA = many(pchar('A'));
     let received = run(pManyA, "AAAB");
     let expected = Success(['A', 'A', 'A'], "B");
 
     expect.ext.success(received).toBe(expected);
   })
 );
+
+describe("Parser / Parsers / keep ", ({test}) => {
+  test("p1 keepR p2 shoud succeed given \"p1p2\"", ({expect}) => {
+    let p1 = pchar('A');
+    let p2 = pchar('B');
+
+    let received = run(p1 >>@ p2, "AB");
+    let expected = Success('B', "");
+
+    expect.ext.success(received).toBe(expected);
+  });
+
+  test("p1 keepR p2 shoud succeed given \"p1p2\"", ({expect}) => {
+    let p1 = pchar('A');
+    let p2 = pchar('B');
+
+    let received = run(p1 @>> p2, "AB");
+    let expected = Success('A', "");
+
+    expect.ext.success(received).toBe(expected);
+  });
+});
+
+describe("Parser / Parsers / sepBy ", ({test}) => {
+  test("p sepBy ; should succeed given p;p;p;", ({expect}) => {
+    let pA = pchar('A');
+
+    let received = run(sepBy(pA, pchar(';')), "A;A;A;A");
+    let expected = Success(['A', 'A', 'A', 'A'], "");
+
+    expect.ext.success(received).toBe(expected);
+  });
+});

@@ -33,7 +33,7 @@ let (>>=) = (p, f) => bindP(f, p);
 let andThen = (p1, p2) =>
   p1 >>= (p1Result => p2 >>= (p2Result => returnP((p1Result, p2Result))));
 
-let (@>>@) = (a, b) => andThen(a, b);
+let (@>>@) = (p1, p2) => andThen(p1, p2);
 
 let applyP = (fP, xP) => fP >>= (f => xP >>= (x => returnP(f(x))));
 
@@ -71,11 +71,11 @@ let mapP = (f, parser) => {
   Parser(fn);
 };
 
-let (|>>) = (x, f) => mapP(f, x);
+let (|>>) = (x, f) => x |> mapP(f);
 
-let (@>>) = (p1, p2) => p1 @>>@ p2 |> mapP((a, b) => a);
+let (@>>) = (p1, p2) => p1 @>>@ p2 |>> fst;
 
-let (>>@) = (p1, p2) => p1 @>>@ p2 |> mapP((a, b) => b);
+let (>>@) = (p1, p2) => p1 @>>@ p2 |>> snd;
 
 let lift2 = (f, xP, yP) => returnP(f) <*> xP <*> yP;
 
@@ -111,9 +111,10 @@ let many = p => {
 };
 
 let sepBy = (p, sep) => {
-  let atLeastOneSep = (p, sep) =>
+  let atLeastOnePThenSeparator = (p, sep) =>
     p @>>@ many(sep >>@ p) |>> (((p, listP)) => [p, ...listP]);
-  atLeastOneSep(p, sep) <|> returnP([]);
+
+  atLeastOnePThenSeparator(p, sep) <|> returnP([]);
 };
 
 module Parsers = {
@@ -137,19 +138,17 @@ module Parsers = {
   let anyOf = (p, input) => input |> List.map(p) |> choice;
 
   let pDigit = {
-    let digits = List.init(10, x => x);
+    open List;
+    let digits = init(10, x => x);
     let ascii0 = 48;
 
-    digits
-    |> List.map(x => x + ascii0)
-    |> List.map(char_of_int)
-    |> anyOf(pchar);
+    digits |> map(x => x + ascii0) |> map(char_of_int) |> anyOf(pchar);
   };
 
-  let pStr = str =>
-    str
-    |> Core.String.to_list
-    |> List.map(pchar)
-    |> sequence
-    |>> (chars => String.concat("", List.map(String.make(1), chars)));
+  let pStr = str => {
+    let toStr = chars => String.concat("", List.map(String.make(1), chars));
+    let toChars = Core.String.to_list;
+
+    str |> toChars |> List.map(pchar) |> sequence |>> toStr;
+  };
 };
