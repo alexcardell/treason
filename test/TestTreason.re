@@ -9,7 +9,7 @@ let x =
     {
       open Rely.RunConfig;
       let config = x => {
-        let ciReporters = [Default, JUnit("reports/rely.junit.xml")];
+        let ciReporters = [Default, JUnit("reports/junit/results.xml")];
         switch (ci) {
         | Some(true) => x |> ciMode(true) |> withReporters(ciReporters)
         | _ => x |> withReporters([Default])
