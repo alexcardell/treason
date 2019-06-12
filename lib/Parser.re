@@ -110,10 +110,11 @@ let many = p => {
   Parser(fn);
 };
 
-let sepBy1 = (p, sep) =>
-  p @>>@ many(sep >>@ p) |>> (((p, listP)) => [p, ...listP]);
-
-let sepBy = (p, sep) => sepBy1(p, sep) <|> returnP([]);
+let sepBy = (p, sep) => {
+  let atLeastOneSep = (p, sep) =>
+    p @>>@ many(sep >>@ p) |>> (((p, listP)) => [p, ...listP]);
+  atLeastOneSep(p, sep) <|> returnP([]);
+};
 
 module Parsers = {
   let pchar = char => {
