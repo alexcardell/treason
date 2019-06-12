@@ -41,4 +41,4 @@ jobs:
           key: dependencies-{{ arch }}-{{ checksum "package.json" }}-{{ checksum "/tmp/key.txt" }}
       - run: esy test
       - store_test_results:
-          path: "reports/rely.junit.xml"
+          path: "reports"
