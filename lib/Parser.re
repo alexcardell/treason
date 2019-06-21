@@ -111,10 +111,10 @@ let many = p => {
 };
 
 let sepBy = (p, sep) => {
-  let atLeastOnePThenSeparator = (p, sep) =>
+  let atLeastOnePThenMaybeSeparatorP = (p, sep) =>
     p @>>@ many(sep >>@ p) |>> (((p, listP)) => [p, ...listP]);
 
-  atLeastOnePThenSeparator(p, sep) <|> returnP([]);
+  atLeastOnePThenMaybeSeparatorP(p, sep) <|> returnP([]);
 };
 
 module Parsers = {
