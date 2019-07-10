@@ -13,14 +13,15 @@
       "ocamloptFlags": [ "-linkall", "-g" ]
     },
     "lib": {
-      "require": [ "extlib", "pastel.lib", "console.lib", "lwt", "lwt.unix" ],
+      "require": [ "extlib", "pastel.lib", "console.lib", "lwt", "lwt.unix", "core" ],
       "preprocess": [ "pps", "lwt_ppx" ],
       "name": "treason.lib",
       "namespace": "Treason"
     },
     "exe": {
       "require": [
-        "extlib", "pastel.lib", "console.lib", "treason.lib", "lwt", "lwt.unix"
+        "extlib", "pastel.lib", "console.lib", "treason.lib", "lwt",
+        "lwt.unix"
       ],
       "preprocess": [ "pps", "lwt_ppx" ],
       "name": "treason.exe",
@@ -30,6 +31,7 @@
   "scripts": { "test": "esy x TestTreason.exe", "run": "esy x Treason.exe" },
   "dependencies": {
     "@esy-ocaml/reason": ">= 3.4.0 < 3.5.0",
+    "@opam/core": "v0.11.3",
     "@opam/dune": "*",
     "@opam/extlib": "1.7.6",
     "@opam/lwt": "4.2.1",

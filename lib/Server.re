@@ -1,31 +1,33 @@
+open Lwt;
 open Lwt.Infix;
 
 let smoke = () => true;
 
 let bin = "tmux";
 
-let exec = cmd => {
-  let args =
-    cmd
-    |> String.split_on_char(' ')
-    |> Array.of_list
-    |> Array.append([|bin, "-C"|]);
-  let proc = (bin, args);
-  Lwt_process.pread(proc);
-};
-
-let parseStream = stream =>
+let parseStreamUntil = (cmd, stream) =>
   stream
-  |> Lwt_stream.get_available
-  |> List.fold_left((ls, acc) => acc ++ ls, "alexxxx")
-  |> Lwt_io.print;
+  |> Lwt_stream.get_while(x => !String.equal(cmd, x))
+  >>= (
+    ls =>
+      List.fold_left(
+        (acc, l) => acc ++ "\n" ++ l,
+        List.hd(ls),
+        List.tl(ls),
+      )
+      |> Lwt_io.printl
+  );
 
 let start = () => {
-  open Lwt;
-  let proc =
-    Lwt_process.shell("tmux -C new-session -s treason-test")
-    |> Lwt_process.open_process_full;
-  Lwt_io.read_lines(proc#stdout) |> Lwt_stream.parse(_, parseStream);
+  let proc = Lwt_process.shell("tmux -C") |> Lwt_process.open_process_full;
+
+  let cmd = "ls";
+
+  cmd
+  |> Lwt_io.write_line(proc#stdin)
+  >>= (_ => Lwt_io.flush(proc#stdin))
+  >>= (_ => Lwt_io.read_lines(proc#stdout) |> Lwt.return)
+  >>= (stream => parseStreamUntil(cmd) |> Lwt_stream.parse(stream));
   /* >>= ((stream) => Lwt_stream.parse(stream, parseStream)) */
   /* >>= (v => Lwt_io.printl(v)) */
   /* >>= (() => Lwt_io.read_line(proc#stdout)) */

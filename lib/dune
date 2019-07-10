@@ -7,6 +7,6 @@
    (name Treason)
    ; Other libraries list this name in their package.json 'require' field to use this library.
    (public_name treason.lib)
-   (libraries  extlib pastel.lib console.lib lwt lwt.unix )
+   (libraries  extlib pastel.lib console.lib lwt lwt.unix core )
    (preprocess ( pps lwt_ppx ))  ; From package.json preprocess field
 )
