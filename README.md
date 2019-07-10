@@ -1,2 +1,2 @@
-# treason [![CircleCI](https://circleci.com/gh/baubler/treason.svg?style=svg)](https://circleci.com/gh/baubler/treason)
+# treason [![CircleCI](https://circleci.com/gh/alexcardell/treason.svg?style=svg)](https://circleci.com/gh/alexcardell/treason)
 tmux library for ReasonML/OCaml
