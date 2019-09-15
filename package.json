@@ -1,9 +1,14 @@
 {
-  "name": "treason",
+  "name": "@alexcardell/treason",
   "version": "0.1.0",
   "description": "ReasonML tmux library",
   "keywords": [ "reason", "esy" ],
-  "esy": { "build": "refmterr dune build -p #{self.name}" },
+  "esy": {
+    "build": "refmterr dune build -p treason",
+    "release": {
+      "releasedBinaries": ["treason.exe"]
+    }
+  },
   "buildDirs": {
     "test": {
       "require": [ "extlib", "treason.lib", "rely.lib" ],
@@ -48,9 +53,9 @@
     "reason-cli": "^0.0.0",
     "refmterr": "*"
   },
-  "repository": "git@github.com:baubler/treason.git",
-  "author": "baubler <29524087+baubler@users.noreply.github.com>",
+  "repository": "git@github.com:alexcardell/treason.git",
+  "author": "alexcardell contact@cardell.io",
   "license": "MIT",
-  "private": true,
+  "private": false,
   "lint-staged": { "*.re": [ "refmt --in-place", "git add" ] }
 }
