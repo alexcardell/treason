@@ -10,12 +10,12 @@ let run = (parser, input) => {
   fn(input);
 };
 
-let returnP = a => {
+let return = a => {
   let fn = input => Success(a, input);
   Parser(fn);
 };
 
-let bindP = (f, p) => {
+let bind = (f, p) => {
   let fn = input => {
     let res1 = run(p, input);
     switch (res1) {
@@ -28,14 +28,14 @@ let bindP = (f, p) => {
   Parser(fn);
 };
 
-let (>>=) = (p, f) => bindP(f, p);
+let (>>=) = (p, f) => bind(f, p);
 
 let andThen = (p1, p2) =>
-  p1 >>= (p1Result => p2 >>= (p2Result => returnP((p1Result, p2Result))));
+  p1 >>= (p1Result => p2 >>= (p2Result => return((p1Result, p2Result))));
 
 let (@>>@) = (p1, p2) => andThen(p1, p2);
 
-let applyP = (fP, xP) => fP >>= (f => xP >>= (x => returnP(f(x))));
+let applyP = (fP, xP) => fP >>= (f => xP >>= (x => return(f(x))));
 
 let (<*>) = (fP, xP) => applyP(fP, xP);
 
@@ -71,31 +71,31 @@ let mapP = (f, parser) => {
   Parser(fn);
 };
 
-let (|>>) = (x, f) => x |> mapP(f);
+let (|>>) = (p, f) => p |> mapP(f);
 
 let (@>>) = (p1, p2) => p1 @>>@ p2 |>> fst;
 
 let (>>@) = (p1, p2) => p1 @>>@ p2 |>> snd;
 
-let lift2 = (f, xP, yP) => returnP(f) <*> xP <*> yP;
+let lift2 = (f, xP, yP) => return(f) <*> xP <*> yP;
 
 let rec sequence = listP => {
   let cons = (hd, tl) => [hd, ...tl];
   let consP = lift2(cons);
 
   switch (listP) {
-  | [] => returnP([])
+  | [] => return([])
   | [hd, ...tl] => consP(hd, sequence(tl))
   };
 };
 
-let rec parseZeroOrMore = (p, input) => {
+let rec zeroOrMore = (p, input) => {
   let res1 = run(p, input);
 
   switch (res1) {
   | Failure(msg) => ([], input)
   | Success(firstValue, inputLeft) =>
-    let (subsequentValues, remainingInput) = parseZeroOrMore(p, inputLeft);
+    let (subsequentValues, remainingInput) = zeroOrMore(p, inputLeft);
     let values = [firstValue, ...subsequentValues];
     (values, remainingInput);
   };
@@ -103,7 +103,7 @@ let rec parseZeroOrMore = (p, input) => {
 
 let many = p => {
   let rec fn = input => {
-    let (parsed, remaining) = parseZeroOrMore(p, input);
+    let (parsed, remaining) = zeroOrMore(p, input);
     Success(parsed, remaining);
   };
 
@@ -114,11 +114,11 @@ let sepBy = (p, sep) => {
   let atLeastOnePThenMaybeSeparatorP = (p, sep) =>
     p @>>@ many(sep >>@ p) |>> (((p, listP)) => [p, ...listP]);
 
-  atLeastOnePThenMaybeSeparatorP(p, sep) <|> returnP([]);
+  atLeastOnePThenMaybeSeparatorP(p, sep) <|> return([]);
 };
 
 module Parsers = {
-  let pchar = char => {
+  let char = char => {
     let fn = str =>
       if (str == "") {
         Failure("Empty Input");
@@ -137,18 +137,40 @@ module Parsers = {
 
   let anyOf = (p, input) => input |> List.map(p) |> choice;
 
-  let pDigit = {
+  let digit = {
     open List;
     let digits = init(10, x => x);
     let ascii0 = 48;
 
-    digits |> map(x => x + ascii0) |> map(char_of_int) |> anyOf(pchar);
+    digits |> map(x => x + ascii0) |> map(char_of_int) |> anyOf(char);
   };
 
-  let pStr = str => {
+  let (lowAlpha, upperAlpha) = {
+    let alpha = asciiStart => {
+      open List;
+
+      let chars = init(26, x => x);
+
+      let toStr = chars =>
+        String.concat("", List.map(String.make(1), chars));
+
+      print_endline(
+        chars |> map(x => x + asciiStart) |> map(char_of_int) |> toStr,
+      );
+
+      chars |> map(x => x + asciiStart) |> map(char_of_int) |> anyOf(char);
+    };
+
+    let lowerStart = 97;
+    let upperStart = 65;
+
+    (alpha(lowerStart), alpha(upperStart));
+  };
+
+  let str = str => {
     let toStr = chars => String.concat("", List.map(String.make(1), chars));
     let toChars = Core.String.to_list;
 
-    str |> toChars |> List.map(pchar) |> sequence |>> toStr;
+    str |> toChars |> List.map(char) |> sequence |>> toStr;
   };
 };

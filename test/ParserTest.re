@@ -11,10 +11,10 @@ let customMatchers = createMatcher => {
 
 let {describe} = extendDescribe(customMatchers);
 
-describe("Parser / Parsers / pchar", ({test}) => {
-  let pA = pchar('A');
+describe("Parser / Parsers / char", ({test}) => {
+  let pA = char('A');
 
-  test("pchar sucess", ({expect}) => {
+  test("char success", ({expect}) => {
     let input = "ABC";
 
     let received = run(pA, input);
@@ -22,7 +22,7 @@ describe("Parser / Parsers / pchar", ({test}) => {
     expect.ext.success(received).toSucceed();
   });
 
-  test("pchar failure", ({expect}) => {
+  test("char failure", ({expect}) => {
     let input = "BC";
 
     let received = run(pA, input);
@@ -31,31 +31,51 @@ describe("Parser / Parsers / pchar", ({test}) => {
   });
 });
 
-describe("Parser / Parsers / pDigit", ({test}) => {
-  test("pDigit sucess", ({expect}) => {
+describe("Parser / Parsers / digit", ({test}) => {
+  test("digit success", ({expect}) => {
     let input = "0123";
 
-    let received = run(pDigit, input);
+    let received = run(digit, input);
     let expected = Success('0', "123");
 
     expect.ext.success(received).toBe(expected);
   });
 
-  test("pDigit failure", ({expect}) => {
+  test("digit failure", ({expect}) => {
     let input = "BC";
 
-    let received = run(pDigit, input);
+    let received = run(digit, input);
 
     expect.ext.success(received).toFail();
   });
 });
 
+describe("Parser / Parsers / alpha", ({test}) => {
+  test("lowAlpha success", ({expect}) => {
+    let input = "abc";
+
+    let received = run(lowAlpha, input);
+    let expected = Success('a', "bc");
+
+    expect.ext.success(received).toBe(expected);
+  });
+
+  test("lowAlpha failure", ({expect}) => {
+    let input = "123";
+
+    let received = run(lowAlpha, input);
+
+    expect.ext.success(received).toFail();
+  });
+});
+
+
 describe("Parser / Combinators / andThen", ({test}) => {
-  let pA = pchar('A');
-  let pB = pchar('B');
+  let pA = char('A');
+  let pB = char('B');
   let pAB = pA @>>@ pB;
 
-  let pA0 = pA @>>@ pDigit;
+  let pA0 = pA @>>@ digit;
 
   test("given 'AB', 'A' andThen 'B' should succeed", ({expect}) => {
     let received = run(pAB, "AB");
@@ -87,8 +107,8 @@ describe("Parser / Combinators / andThen", ({test}) => {
 });
 
 describe("Parser / Combinators / orElse", ({test}) => {
-  let pA = pchar('A');
-  let pB = pchar('B');
+  let pA = char('A');
+  let pB = char('B');
   let p = pA <|> pB;
 
   test("orElse success 1", ({expect}) => {
@@ -114,7 +134,7 @@ describe("Parser / Combinators / orElse", ({test}) => {
 
 describe("Parser / Combinators / anyOf", ({test}) => {
   let chars = ['A', 'B', 'C'];
-  let p = anyOf(pchar, chars);
+  let p = anyOf(char, chars);
 
   test("anyOf success 1", ({expect}) => {
     let received = run(p, "AD");
@@ -144,9 +164,9 @@ describe("Parser / Combinators / anyOf", ({test}) => {
   });
 });
 
-describe("Parser / Parsers / pStr ", ({test}) => {
+describe("Parser / Parsers / str ", ({test}) => {
   test("parser for \"ABC\" should succeed given \"ABC\"", ({expect}) => {
-    let pABC = pStr("ABC");
+    let pABC = str("ABC");
     let received = run(pABC, "ABC");
     let expected = Success("ABC", "");
 
@@ -154,14 +174,14 @@ describe("Parser / Parsers / pStr ", ({test}) => {
   });
 
   test("parser for \"ABC\" should fail given \"ABB\"", ({expect}) => {
-    let pABC = pStr("ABC");
+    let pABC = str("ABC");
     let received = run(pABC, "ABB");
 
     expect.ext.success(received).toFail();
   });
 
   test("parser for \"12AB\" should succeed given \"12AB3C\"", ({expect}) => {
-    let pABC = pStr("12AB");
+    let pABC = str("12AB");
     let received = run(pABC, "12AB3C");
     let expected = Success("12AB", "3C");
 
@@ -171,7 +191,7 @@ describe("Parser / Parsers / pStr ", ({test}) => {
 
 describe("Parser / Parsers / many ", ({test}) =>
   test("parser for \"ABC\" should succeed given \"ABC\"", ({expect}) => {
-    let pManyA = many(pchar('A'));
+    let pManyA = many(char('A'));
     let received = run(pManyA, "AAAB");
     let expected = Success(['A', 'A', 'A'], "B");
 
@@ -181,8 +201,8 @@ describe("Parser / Parsers / many ", ({test}) =>
 
 describe("Parser / Parsers / keep ", ({test}) => {
   test("p1 keepR p2 shoud succeed given \"p1p2\"", ({expect}) => {
-    let p1 = pchar('A');
-    let p2 = pchar('B');
+    let p1 = char('A');
+    let p2 = char('B');
 
     let received = run(p1 >>@ p2, "AB");
     let expected = Success('B', "");
@@ -191,8 +211,8 @@ describe("Parser / Parsers / keep ", ({test}) => {
   });
 
   test("p1 keepR p2 shoud succeed given \"p1p2\"", ({expect}) => {
-    let p1 = pchar('A');
-    let p2 = pchar('B');
+    let p1 = char('A');
+    let p2 = char('B');
 
     let received = run(p1 @>> p2, "AB");
     let expected = Success('A', "");
@@ -203,9 +223,9 @@ describe("Parser / Parsers / keep ", ({test}) => {
 
 describe("Parser / Parsers / sepBy ", ({test}) => {
   test("p sepBy ; should succeed given p;p;p;", ({expect}) => {
-    let pA = pchar('A');
+    let pA = char('A');
 
-    let received = run(sepBy(pA, pchar(';')), "A;A;A;A");
+    let received = run(sepBy(pA, char(';')), "A;A;A;A");
     let expected = Success(['A', 'A', 'A', 'A'], "");
 
     expect.ext.success(received).toBe(expected);
