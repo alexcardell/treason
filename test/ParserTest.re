@@ -1,5 +1,6 @@
 open TestFramework;
-open Treason.Parser;
+open Treason;
+open Parser;
 open Parsers;
 open SuccessExtensions;
 
@@ -51,24 +52,40 @@ describe("Parser / Parsers / digit", ({test}) => {
 });
 
 describe("Parser / Parsers / alpha", ({test}) => {
-  test("lowAlpha success", ({expect}) => {
+  test("lowerAlpha success", ({expect}) => {
     let input = "abc";
 
-    let received = run(lowAlpha, input);
+    let received = run(lowerAlpha, input);
     let expected = Success('a', "bc");
 
     expect.ext.success(received).toBe(expected);
   });
 
-  test("lowAlpha failure", ({expect}) => {
-    let input = "123";
+  test("lowerAlpha failure", ({expect}) => {
+    let input = "ABC";
 
-    let received = run(lowAlpha, input);
+    let received = run(lowerAlpha, input);
+
+    expect.ext.success(received).toFail();
+  });
+
+  test("upperAlpha success", ({expect}) => {
+    let input = "ABC";
+
+    let received = run(upperAlpha, input);
+    let expected = Success('A', "BC");
+
+    expect.ext.success(received).toBe(expected);
+  });
+
+  test("upperAlpha failure", ({expect}) => {
+    let input = "abc";
+
+    let received = run(upperAlpha, input);
 
     expect.ext.success(received).toFail();
   });
 });
-
 
 describe("Parser / Combinators / andThen", ({test}) => {
   let pA = char('A');
@@ -210,7 +227,7 @@ describe("Parser / Parsers / keep ", ({test}) => {
     expect.ext.success(received).toBe(expected);
   });
 
-  test("p1 keepR p2 shoud succeed given \"p1p2\"", ({expect}) => {
+  test("p1 keepL p2 shoud succeed given \"p1p2\"", ({expect}) => {
     let p1 = char('A');
     let p2 = char('B');
 
@@ -221,7 +238,7 @@ describe("Parser / Parsers / keep ", ({test}) => {
   });
 });
 
-describe("Parser / Parsers / sepBy ", ({test}) => {
+describe("Parser / Parsers / sepBy ", ({test}) =>
   test("p sepBy ; should succeed given p;p;p;", ({expect}) => {
     let pA = char('A');
 
@@ -229,5 +246,51 @@ describe("Parser / Parsers / sepBy ", ({test}) => {
     let expected = Success(['A', 'A', 'A', 'A'], "");
 
     expect.ext.success(received).toBe(expected);
+  })
+);
+
+describe("Parser / Parsers / numbers ", ({test}) => {
+  test("plus succeeds on a postive", ({expect}) => {
+    let received = run(plus, "123");
+    let expected = Success(123, "");
+
+    expect.ext.success(received).toBe(expected);
+  });
+
+  test("plus fails on a negative", ({expect}) => {
+    let received = run(plus, "-123");
+
+    expect.ext.success(received).toFail();
+  });
+
+  test("minus succeeds negative", ({expect}) => {
+    let received = run(minus, "-123");
+    let expected = Success(-123, "");
+
+    expect.ext.success(received).toBe(expected);
+  });
+
+  test("minus fails on a postive", ({expect}) => {
+    let received = run(minus, "123");
+
+    expect.ext.success(received).toFail();
+  });
+});
+
+open Config;
+
+describe("Config", ({test}) => {
+  test("name", ({expect}) => {
+    let received = run(name, "name: alex");
+    let expected = Success(SessionName("alex"), "");
+
+    expect.equal(received, expected);
+  });
+
+  test("name", ({expect}) => {
+    let received = run(name, "name: alex");
+    let expected = Success(SessionName("alex"), "");
+
+    expect.equal(received, expected);
   });
 });

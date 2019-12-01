@@ -33,11 +33,13 @@ let (>>=) = (p, f) => bind(f, p);
 let andThen = (p1, p2) =>
   p1 >>= (p1Result => p2 >>= (p2Result => return((p1Result, p2Result))));
 
+/* andThen */
 let (@>>@) = (p1, p2) => andThen(p1, p2);
 
-let applyP = (fP, xP) => fP >>= (f => xP >>= (x => return(f(x))));
+let apply = (fP, xP) => fP >>= (f => xP >>= (x => return(f(x))));
 
-let (<*>) = (fP, xP) => applyP(fP, xP);
+/* apply */
+let (<*>) = (fP, xP) => apply(fP, xP);
 
 let orElse = (p1, p2) => {
   let fn = input => {
@@ -51,16 +53,12 @@ let orElse = (p1, p2) => {
   Parser(fn);
 };
 
+/* orElse */
 let (<|>) = (a, b) => orElse(a, b);
 
-let choice = parsers => {
-  open List;
-  let reduce = (f, ls) => fold_left(f, hd(ls), tl(ls));
+let choice = Utils.reduce(orElse);
 
-  parsers |> reduce(orElse);
-};
-
-let mapP = (f, parser) => {
+let map = (f, parser) => {
   let fn = input => {
     let result = run(parser, input);
     switch (result) {
@@ -71,10 +69,13 @@ let mapP = (f, parser) => {
   Parser(fn);
 };
 
-let (|>>) = (p, f) => p |> mapP(f);
+/* map */
+let (|>>) = (p, f) => p |> map(f);
 
+/* andThen, keepLeft */
 let (@>>) = (p1, p2) => p1 @>>@ p2 |>> fst;
 
+/* andThen, keepRight */
 let (>>@) = (p1, p2) => p1 @>>@ p2 |>> snd;
 
 let lift2 = (f, xP, yP) => return(f) <*> xP <*> yP;
@@ -110,12 +111,13 @@ let many = p => {
   Parser(fn);
 };
 
-let sepBy = (p, sep) => {
-  let atLeastOnePThenMaybeSeparatorP = (p, sep) =>
-    p @>>@ many(sep >>@ p) |>> (((p, listP)) => [p, ...listP]);
+let sepBy = (p, sep) =>
+  p
+  @>>@ many(sep >>@ p)
+  |>> (((p, listP)) => [p, ...listP])
+  <|> return([]);
 
-  atLeastOnePThenMaybeSeparatorP(p, sep) <|> return([]);
-};
+let anyOf = (p, input) => input |> List.map(p) |> choice;
 
 module Parsers = {
   let char = char => {
@@ -135,30 +137,24 @@ module Parsers = {
     Parser(fn);
   };
 
-  let anyOf = (p, input) => input |> List.map(p) |> choice;
-
   let digit = {
-    open List;
-    let digits = init(10, x => x);
+    let digits = List.init(10, x => x);
     let ascii0 = 48;
 
-    digits |> map(x => x + ascii0) |> map(char_of_int) |> anyOf(char);
+    digits
+    |> List.map(x => x + ascii0)
+    |> List.map(char_of_int)
+    |> anyOf(char);
   };
 
-  let (lowAlpha, upperAlpha) = {
+  let (lowerAlpha, upperAlpha) = {
     let alpha = asciiStart => {
-      open List;
+      let chars = List.init(26, x => x);
 
-      let chars = init(26, x => x);
-
-      let toStr = chars =>
-        String.concat("", List.map(String.make(1), chars));
-
-      print_endline(
-        chars |> map(x => x + asciiStart) |> map(char_of_int) |> toStr,
-      );
-
-      chars |> map(x => x + asciiStart) |> map(char_of_int) |> anyOf(char);
+      chars
+      |> List.map(x => x + asciiStart)
+      |> List.map(char_of_int)
+      |> anyOf(char);
     };
 
     let lowerStart = 97;
@@ -167,10 +163,31 @@ module Parsers = {
     (alpha(lowerStart), alpha(upperStart));
   };
 
-  let str = str => {
-    let toStr = chars => String.concat("", List.map(String.make(1), chars));
-    let toChars = Core.String.to_list;
+  let alpha = lowerAlpha <|> upperAlpha;
 
-    str |> toChars |> List.map(char) |> sequence |>> toStr;
-  };
+  let whitespace = [' ', '\n', '\t'] |> anyOf(char);
+
+  let str = str =>
+    Utils.toChars(str) |> List.map(char) |> sequence |>> Utils.toStr;
+
+  let uint = many(digit) |>> (ls => ls |> Utils.toStr |> int_of_string);
+
+  let plus = uint <|> (char('+') >>@ uint);
+
+  let minus = char('-') >>@ uint |>> (x => - x);
+
+  let integer = plus <|> minus;
+
+  let floating =
+    many(digit)
+    @>>@ char('.')
+    @>>@ many(digit)
+    |>> (
+      ((pre, (dot, post))) => {
+        [pre, [dot], post]
+        |> List.map(Utils.toStr)
+        |> String.concat("")
+        |> float_of_string;
+      }
+    );
 };
