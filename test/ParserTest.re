@@ -252,7 +252,7 @@ describe("Parser / Parsers / sepBy ", ({test}) =>
 describe("Parser / Parsers / numbers ", ({test}) => {
   test("plus succeeds on a postive", ({expect}) => {
     let received = run(plus, "123");
-    let expected = Success(123, "");
+    let expected = Success("123", "");
 
     expect.ext.success(received).toBe(expected);
   });
@@ -265,7 +265,7 @@ describe("Parser / Parsers / numbers ", ({test}) => {
 
   test("minus succeeds negative", ({expect}) => {
     let received = run(minus, "-123");
-    let expected = Success(-123, "");
+    let expected = Success("-123", "");
 
     expect.ext.success(received).toBe(expected);
   });

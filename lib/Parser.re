@@ -170,11 +170,14 @@ module Parsers = {
   let str = str =>
     Utils.toChars(str) |> List.map(char) |> sequence |>> Utils.toStr;
 
-  let uint = many(digit) |>> (ls => ls |> Utils.toStr |> int_of_string);
+  let uint = many(digit) |>> (Utils.toStr);
 
   let plus = uint <|> (char('+') >>@ uint);
 
-  let minus = char('-') >>@ uint |>> (x => - x);
+  let minus =
+    char('-')
+    @>>@ uint
+    |>> (Utils.prependCharTuple);
 
   let integer = plus <|> minus;
 
